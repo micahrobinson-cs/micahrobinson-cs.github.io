@@ -826,129 +826,197 @@
 
   <!-- ====================== SCRIPTS ====================== -->
   <script>
-    // Theme Toggle
-    const checkbox = document.getElementById('theme-checkbox');
-    if (localStorage.getItem('theme') === 'light') {
-      document.body.classList.add('light');
-      checkbox.checked = true;
-    }
-    checkbox.addEventListener('change', () => {
+  // Theme Toggle
+  const checkbox = document.getElementById('theme-checkbox');
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light');
+    checkbox.checked = true;
+  }
+
+  let epilepsyInterval = null;
+
+  checkbox.addEventListener('change', (e) => {
+    const shiftHeld = e.shiftKey;
+
+    if (shiftHeld && !epilepsyInterval) {
+      e.preventDefault(); // stop normal toggle
+      showEpilepsyPrompt();
+    } else {
+      // Normal toggle
       document.body.classList.toggle('light', checkbox.checked);
       localStorage.setItem('theme', checkbox.checked ? 'light' : 'dark');
-    });
-
-    // Side Nav
-    const sections = document.querySelectorAll("section");
-    const dots = document.querySelectorAll(".scroll-nav .dot");
-
-    window.addEventListener("scroll", () => {
-      let current = "";
-      sections.forEach(sec => {
-        if (scrollY >= sec.offsetTop - 250) current = sec.getAttribute("id");
-      });
-      dots.forEach(dot => dot.classList.toggle("active", dot.getAttribute("href") === `#${current}`));
-    });
-
-    dots.forEach(dot => {
-      dot.addEventListener("click", e => {
-        e.preventDefault();
-        const target = document.querySelector(dot.getAttribute("href"));
-        window.scrollTo({ top: target.offsetTop - 50, behavior: "smooth" });
-      });
-    });
-
-    // Typing Effect
-    const roles = ["problem solver", "cloud architect", "security engineer"];
-    const typed = document.querySelector(".typed-text");
-    let i = 0, j = 0, deleting = false;
-
-    function type() {
-      const word = roles[i];
-      typed.textContent = word.slice(0, j);
-      if (!deleting && j < word.length) { j++; setTimeout(type, 120); }
-      else if (deleting && j > 0) { j--; setTimeout(type, 60); }
-      else {
-        if (!deleting) setTimeout(() => deleting = true, 1200);
-        else { deleting = false; i = (i + 1) % roles.length; }
-        setTimeout(type, 300);
-      }
     }
-    type();
+  });
 
-
-  <!-- ====================== KONAMI CODE + PAC-MAN ====================== -->
-    // === EASTER EGG: KONAMI CODE ===
-    let konami = [];
-    const code = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown',
-                  'ArrowLeft','ArrowRight','ArrowLeft','ArrowRight',
-                  'KeyB','KeyA'];
-
-    window.addEventListener('keydown', e => {
-      konami.push(e.code);
-      if (konami.length > code.length) konami.shift();
-      if (konami.join() === code.join()) {
-        startPacman();
-        konami = [];               // reset so it can be triggered again
-      }
-    });
-
-    function startPacman() {
-      // Prevent duplicate pop-ups
-      if (document.getElementById('pacman-easteregg')) return;
-
-      const container = document.createElement('div');
-      container.id = 'pacman-easteregg';
-      container.style.cssText = `
-        position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-        background:#000; border:4px solid #ff0; width:90vw; max-width:800px;
-        height:80vh; max-height:600px; z-index:9999; border-radius:16px;
-        overflow:hidden; box-shadow:0 0 30px rgba(255,255,0,0.6);
-        font-family:'Courier New',monospace; display:flex; flex-direction:column;
-      `;
-
-      container.innerHTML = `
-        <div style="background:#000; color:#ff0; padding:8px 12px;
-                    font-size:0.9rem; display:flex; justify-content:space-between;
-                    align-items:center; border-bottom:2px solid #ff0;">
-          <strong>PACMAN EASTER EGG</strong>
-          <button onclick="this.closest('#pacman-easteregg').remove()"
-                  style="background:none;border:none;color:#ff0;
-                         font-size:1.4rem;cursor:pointer; padding:0 8px;">X</button>
-        </div>
-
-        <iframe src="https://bobbylight.github.io/PacmanJS/"
-                style="flex:1; border:none; width:100%; height:100%;"
-                frameborder="0" allowfullscreen></iframe>
-
-        <div style="background:#111; color:#ff0; padding:10px;
-                    font-size:0.85rem; line-height:1.4;">
-          <strong>Controls:</strong><br>
-          Arrow Keys: Move | Enter: Start/Pause | M: Mute<br>
-          <strong>Cheats:</strong><br>
-          Z+X: Next Level | Z+C: Suicide | Z+G: God Mode
-        </div>
-      `;
-
-      document.body.appendChild(container);
-
-      // Focus the iframe so arrow keys work immediately
-      const iframe = container.querySelector('iframe');
-      iframe.focus();
-
-      // Optional fun sound
-      const snd = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3');
-      snd.volume = 0.3;
-      snd.play().catch(() => {});   // ignore if autoplay blocked
-    }
-
-
-    // Glow animation
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes glow { from { box-shadow: 0 0 30px #0f0, 0 0 60px rgba(0,255,0,0.3); } to { box-shadow: 0 0 50px #0f0, 0 0 100px rgba(0,255,0,0.5); } }
-      @keyframes blink { 50% { opacity: 0; } }
+  function showEpilepsyPrompt() {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed; top:0; left:0; width:100%; height:100%; 
+      background:rgba(0,0,0,0.9); z-index:10000; 
+      display:flex; align-items:center; justify-content:center;
+      font-family: 'Fira Code', monospace; color:#0f0; text-align:center;
     `;
-    document.head.appendChild(style);
+
+    overlay.innerHTML = `
+      <div style="background:#111; padding:2rem; border:3px solid #0f0; border-radius:12px; max-width:400px;">
+        <h3 style="margin:0 0 1rem; color:#ff0;">Epilepsy Mode</h3>
+        <p style="margin:0 0 1.5rem; line-height:1.5;">
+          Do you wish to turn on <strong style="color:#f00;">Epilepsy Mode</strong>?<br>
+          The screen will flash rapidly.
+        </p>
+        <div>
+          <button id="epilepsy-yes" style="background:#0f0; color:#000; border:none; padding:0.6rem 1.2rem; margin:0 0.5rem; border-radius:6px; cursor:pointer; font-weight:bold;">YES</button>
+          <button id="epilepsy-no" style="background:#333; color:#fff; border:1px solid #666; padding:0.6rem 1.2rem; margin:0 0.5rem; border-radius:6px; cursor:pointer;">NO</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('epilepsy-yes').onclick = () => {
+      overlay.remove();
+      startEpilepsyMode();
+    };
+
+    document.getElementById('epilepsy-no').onclick = () => {
+      overlay.remove();
+      // Resume normal toggle
+      checkbox.checked = !checkbox.checked;
+      document.body.classList.toggle('light', checkbox.checked);
+      localStorage.setItem('theme', checkbox.checked ? 'light' : 'dark');
+    };
+  }
+
+  function startEpilepsyMode() {
+    let isLight = false;
+    epilepsyInterval = setInterval(() => {
+      isLight = !isLight;
+      document.body.classList.toggle('light', isLight);
+    }, 80); // ~12.5 Hz
+
+    // Add stop button
+    const stopBtn = document.createElement('div');
+    stopBtn.textContent = 'STOP';
+    stopBtn.style.cssText = `
+      position:fixed; top:20px; right:80px; background:#f00; color:#fff; 
+      padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;
+      z-index:10001; font-family:monospace; box-shadow:0 0 15px #f00;
+    `;
+    stopBtn.onclick = stopEpilepsyMode;
+    document.body.appendChild(stopBtn);
+  }
+
+  function stopEpilepsyMode() {
+    if (epilepsyInterval) clearInterval(epilepsyInterval);
+    epilepsyInterval = null;
+    document.body.classList.remove('light');
+    checkbox.checked = false;
+    localStorage.setItem('theme', 'dark');
+    document.querySelectorAll('[style*="z-index:10001"]').forEach(el => el.remove());
+  }
+
+  // === SIDE NAV, TYPING EFFECT, KONAMI, NYAN CAT, GROK === (unchanged below)
+  // ... [your existing code continues here] ...
+  // (Keep everything from here down exactly as-is)
+
+  // Side Nav
+  const sections = document.querySelectorAll("section");
+  const dots = document.querySelectorAll(".scroll-nav .dot");
+
+  window.addEventListener("scroll", () => {
+    let current = "";
+    sections.forEach(sec => {
+      if (scrollY >= sec.offsetTop - 250) current = sec.getAttribute("id");
+    });
+    dots.forEach(dot => dot.classList.toggle("active", dot.getAttribute("href") === `#${current}`));
+  });
+
+  dots.forEach(dot => {
+    dot.addEventListener("click", e => {
+      e.preventDefault();
+      const target = document.querySelector(dot.getAttribute("href"));
+      window.scrollTo({ top: target.offsetTop - 50, behavior: "smooth" });
+    });
+  });
+
+  // Typing Effect
+  const roles = ["problem solver", "cloud architect", "security engineer"];
+  const typed = document.querySelector(".typed-text");
+  let i = 0, j = 0, deleting = false;
+
+  function type() {
+    const word = roles[i];
+    typed.textContent = word.slice(0, j);
+    if (!deleting && j < word.length) { j++; setTimeout(type, 120); }
+    else if (deleting && j > 0) { j--; setTimeout(type, 60); }
+    else {
+      if (!deleting) setTimeout(() => deleting = true, 1200);
+      else { deleting = false; i = (i + 1) % roles.length; }
+      setTimeout(type, 300);
+    }
+  }
+  type();
+
+  // === KONAMI CODE + PAC-MAN ===
+  let konami = [];
+  const code = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown',
+                'ArrowLeft','ArrowRight','ArrowLeft','ArrowRight',
+                'KeyB','KeyA'];
+
+  window.addEventListener('keydown', e => {
+    konami.push(e.code);
+    if (konami.length > code.length) konami.shift();
+    if (konami.join() === code.join()) {
+      startPacman();
+      konami = [];
+    }
+  });
+
+  function startPacman() {
+    if (document.getElementById('pacman-easteregg')) return;
+
+    const container = document.createElement('div');
+    container.id = 'pacman-easteregg';
+    container.style.cssText = `
+      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+      background:#000; border:4px solid #ff0; width:90vw; max-width:800px;
+      height:80vh; max-height:600px; z-index:9999; border-radius:16px;
+      overflow:hidden; box-shadow:0 0 30px rgba(255,255,0,0.6);
+      font-family:'Courier New',monospace; display:flex; flex-direction:column;
+    `;
+
+    container.innerHTML = `
+      <div style="background:#000; color:#ff0; padding:8px 12px;
+                  font-size:0.9rem; display:flex; justify-content:space-between;
+                  align-items:center; border-bottom:2px solid #ff0;">
+        <strong>PACMAN EASTER EGG</strong>
+        <button onclick="this.closest('#pacman-easteregg').remove()"
+                style="background:none;border:none;color:#ff0;
+                       font-size:1.4rem;cursor:pointer; padding:0 8px;">X</button>
+      </div>
+
+      <iframe src="https://bobbylight.github.io/PacmanJS/"
+              style="flex:1; border:none; width:100%; height:100%;"
+              frameborder="0" allowfullscreen></iframe>
+
+      <div style="background:#111; color:#ff0; padding:10px;
+                  font-size:0.85rem; line-height:1.4;">
+        <strong>Controls:</strong><br>
+        Arrow Keys: Move | Enter: Start/Pause | M: Mute<br>
+        <strong>Cheats:</strong><br>
+        Z+X: Next Level | Z+C: Suicide | Z+G: God Mode
+      </div>
+    `;
+
+    document.body.appendChild(container);
+    container.querySelector('iframe').focus();
+
+    const snd = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3');
+    snd.volume = 0.3;
+    snd.play().catch(() => {});
+  }
+
+  // Nyan Cat
   let nyanTimer;
   window.addEventListener('keydown', e => { 
     if (e.code === 'Space') nyanTimer = setTimeout(nyanCat, 800); 
@@ -970,7 +1038,7 @@
     }, 16);
   }
 
-  // === GROK CHAT: Type "GROK" on keyboard ===
+  // GROK Chat
   let grok = '';
   window.addEventListener('keydown', e => {
     grok += e.key.toUpperCase();
@@ -991,21 +1059,8 @@
       if (e.key === 'Enter') alert(`Grok says: "${input.value}" – nice one!`); 
     });
   }
-
-  // === INTEGRATE WITH YOUR LIGHT/DARK TOGGLE (if you have one) ===
-  // Assuming you have a button with id="theme-toggle"
-  document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-    const isDark = document.body.classList.contains('dark');
-    document.querySelectorAll('[style*="color:#ff0"]').forEach(el => {
-      el.style.color = isDark ? '#0f0' : '#ff0';
-    });
-    // Also update Grok bubble if open
-    document.querySelectorAll('[style*="color:#0f0"]').forEach(el => {
-      el.style.color = isDark ? '#ff0' : '#0f0';
-    });
-  });
-  </script>
+</script>
 </body>
 
 </html>
+
