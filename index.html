@@ -949,7 +949,63 @@
       @keyframes blink { 50% { opacity: 0; } }
     `;
     document.head.appendChild(style);
-  
+  let nyanTimer;
+  window.addEventListener('keydown', e => { 
+    if (e.code === 'Space') nyanTimer = setTimeout(nyanCat, 800); 
+  });
+  window.addEventListener('keyup', e => { 
+    if (e.code === 'Space') clearTimeout(nyanTimer); 
+  });
+
+  function nyanCat() {
+    const cat = document.createElement('img');
+    cat.src = 'https://media.tenor.com/2J4mZ4g0uI0AAAAd/nyan-cat.gif';
+    cat.style = `position:fixed;bottom:20px;left:-200px;width:150px;z-index:9999;transform:scaleX(-1);`;
+    document.body.appendChild(cat);
+    let x = -200;
+    const id = setInterval(() => {
+      x += 15;
+      cat.style.left = x + 'px';
+      if (x > innerWidth) { clearInterval(id); cat.remove(); }
+    }, 16);
+  }
+
+  // === GROK CHAT: Type "GROK" on keyboard ===
+  let grok = '';
+  window.addEventListener('keydown', e => {
+    grok += e.key.toUpperCase();
+    if (grok.length > 4) grok = grok.slice(-4);
+    if (grok === 'GROK') showGrokChat();
+  });
+  function showGrokChat() {
+    const bubble = document.createElement('div');
+    bubble.innerHTML = `<div style="position:fixed;bottom:20px;right:20px;background:#000;color:#0f0;padding:15px;border-radius:12px;border:2px solid #0f0;max-width:300px;z-index:9999;font-family:monospace;">
+      <strong>Grok:</strong> Hello! I'm here. Ask me anything!<br>
+      <input id="grokInput" placeholder="Type here..." style="margin-top:8px;width:100%;background:#111;color:#0f0;border:1px solid #0f0;padding:5px;">
+      <button onclick="this.closest('div').remove()" style="float:right;margin-top:5px;background:none;border:none;color:#f00;cursor:pointer;">X</button>
+    </div>`;
+    document.body.appendChild(bubble);
+    const input = bubble.querySelector('#grokInput');
+    input.focus();
+    input.addEventListener('keypress', e => { 
+      if (e.key === 'Enter') alert(`Grok says: "${input.value}" – nice one!`); 
+    });
+  }
+
+  // === INTEGRATE WITH YOUR LIGHT/DARK TOGGLE (if you have one) ===
+  // Assuming you have a button with id="theme-toggle"
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    document.querySelectorAll('[style*="color:#ff0"]').forEach(el => {
+      el.style.color = isDark ? '#0f0' : '#ff0';
+    });
+    // Also update Grok bubble if open
+    document.querySelectorAll('[style*="color:#0f0"]').forEach(el => {
+      el.style.color = isDark ? '#ff0' : '#0f0';
+    });
+  });
   </script>
 </body>
+
 </html>
